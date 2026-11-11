@@ -1,0 +1,57 @@
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.19.0
+    container_name: dl_forecasting_mlflow
+    ports:
+      - "5000:5000"
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:////mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+    volumes:
+      - mlflow_data:/mlflow
+
+  train:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dl_forecasting_train
+    command: >
+      sh -c "python ingest.py &&
+             python preprocess.py &&
+             python train.py --model all &&
+             python evaluate.py &&
+             python serving/select_best_model.py"
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./models_export:/app/models_export
+    depends_on:
+      - mlflow
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dl_forecasting_test
+    command: pytest tests/ -v
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./models_export:/app/models_export
+
+  inference:
+    build:
+      context: .
+      dockerfile: Dockerfile.inference
+    container_name: dl_forecasting_inference
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./models_export:/app/models_export:ro
+    environment:
+      - MODEL_EXPORT_DIR=/app/models_export/best_model
+    depends_on:
+      - train
+
+volumes:
+  mlflow_data:

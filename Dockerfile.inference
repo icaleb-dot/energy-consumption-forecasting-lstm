@@ -1,0 +1,21 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    MODEL_EXPORT_DIR=/app/models_export/best_model
+
+COPY requirements-infer.txt .
+RUN pip install --no-cache-dir -r requirements-infer.txt
+
+# Copy inference runtime code
+COPY models /app/models
+COPY inference /app/inference
+COPY utils /app/utils
+COPY params.yaml /app/params.yaml
+
+EXPOSE 8080
+
+CMD ["uvicorn", "inference.api:app", "--host", "0.0.0.0", "--port", "8080"]
+
