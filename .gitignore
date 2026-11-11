@@ -1,0 +1,37 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+
+# Data & Large Files (Tracked by DVC)
+data/
+data/raw/
+data/processed/
+
+# Artifacts & Checkpoints
+artifacts/
+models_export/
+
+# MLflow Tracking Database & Runs
+mlruns/
+mlartifacts/
+mlflow.db
+mlflow.db-journal
+*.db
+
+# DVC Local Remotes & Cache
+.dvc/cache/
+.dvc/tmp/
+/tmp/
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,43 @@
+dataset:
+  name: uci_power
+  raw_path: data/raw/household_power_consumption.txt
+  uci_url: https://archive.ics.uci.edu/static/public/235/individual+household+electric+power+consumption.zip
+  target_col: Global_active_power
+  input_window: 24
+  horizon: 1
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+  scaler_type: standard        # standard | minmax
+  processed_dir: data/processed
+  scaler_path: artifacts/scaler.joblib
+
+model:
+  type: lstm                  # rnn | lstm | gru
+  input_size: 1
+  hidden_size: 32
+  num_layers: 1
+  output_size: 1
+  dropout: 0.0
+
+train:
+  seed: 42
+  epochs: 30
+  batch_size: 64
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  patience: 5
+  min_delta: 0.0001
+
+scheduler:
+  mode: min
+  factor: 0.5
+  patience: 2
+
+tracking:
+  uri: sqlite:///mlflow.db
+  experiment_name: household_power_forecasting
+  run_name: lstm-forecaster
+
+serving:
+  export_dir: models_export/best_model

@@ -1,0 +1,59 @@
+stages:
+  ingest:
+    cmd: python ingest.py --params params.yaml
+    deps:
+      - ingest.py
+    params:
+      - dataset.raw_path
+      - dataset.uci_url
+    outs:
+      - data/raw/household_power_consumption.txt:
+          cache: true
+
+  preprocess:
+    cmd: python preprocess.py --params params.yaml
+    deps:
+      - preprocess.py
+      - data/raw/household_power_consumption.txt
+    params:
+      - dataset
+    outs:
+      - data/processed:
+          cache: true
+      - artifacts/scaler.joblib:
+          cache: true
+
+  train:
+    cmd: python train.py --params params.yaml
+    deps:
+      - train.py
+      - data/processed
+      - models/base.py
+      - models/factory.py
+      - models/rnn.py
+      - models/lstm.py
+      - models/gru.py
+      - engine/trainer.py
+      - callbacks/early_stopping.py
+      - tracking/mlflow_utils.py
+    params:
+      - train
+      - model
+      - scheduler
+      - tracking
+    outs:
+      - artifacts/best_model.pth:
+          cache: true
+
+  evaluate:
+    cmd: python evaluate.py --params params.yaml --output metrics.json
+    deps:
+      - evaluate.py
+      - artifacts/best_model.pth
+      - artifacts/scaler.joblib
+      - data/processed
+      - engine/evaluator.py
+      - engine/metrics.py
+    metrics:
+      - metrics.json:
+          cache: false
